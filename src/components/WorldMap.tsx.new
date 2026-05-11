@@ -1,0 +1,302 @@
+"use client";
+
+import { useMemo, useState, useEffect } from "react";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from "react-simple-maps";
+
+import type { CountryDatum, CountryStatus } from "@/lib/map/countryData";
+
+const GEO_URL = "/countries-110m.json";
+
+// Data for dots (markers) on the map with coordinates and case counts
+const countryMarkers: Record<string, { coords: [number, number]; cases?: number }> = {
+  USA: { coords: [-95.7, 37.1], cases: 890 },
+  CHN: { coords: [104.2, 35.9], cases: 40000 },
+  RUS: { coords: [105.3, 61.5], cases: 7000 },
+  GBR: { coords: [-3.4, 55.4], cases: 7 },
+  DEU: { coords: [10.5, 51.2], cases: 1885 },
+  FIN: { coords: [25.7, 61.9], cases: 2000 },
+  SWE: { coords: [18.6, 60.1], cases: 500 },
+  NOR: { coords: [8.5, 60.5], cases: 200 },
+  ARG: { coords: [-63.6, -38.4], cases: 100 },
+  BRA: { coords: [-51.9, -14.2], cases: 150 },
+  CHL: { coords: [-71.5, -35.7], cases: 80 },
+  CAN: { coords: [-106.3, 56.1], cases: 50 },
+  ZAF: { coords: [22.9, -30.6], cases: 1 },
+  KOR: { coords: [127.8, 35.9], cases: 400 },
+  SRB: { coords: [21.0, 44.0], cases: 150 },
+  HRV: { coords: [15.2, 45.1], cases: 100 },
+  BIH: { coords: [17.7, 43.9], cases: 80 },
+  SVN: { coords: [15.0, 46.2], cases: 60 },
+};
+
+function statusColor(status: CountryStatus) {
+  switch (status) {
+    case "ok":
+      return "#10b981"; // Emerald 500
+    case "watch":
+      return "#f59e0b"; // Amber 500
+    case "alert":
+      return "#ef4444"; // Red 500
+    case "unknown":
+    default:
+      return "#64748b"; // Slate 500
+  }
+}
+
+export default function WorldMap({
+  data,
+  onSelect,
+}: {
+  data: CountryDatum[];
+  onSelect: (item: CountryDatum | null) => void;
+}) {
+  const [hoverIso3, setHoverIso3] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [position, setPosition] = useState({ coordinates: [0, 20] as [number, number], zoom: 1 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const byIso3 = useMemo(() => {
+    const map = new Map<string, CountryDatum>();
+    for (const item of data) {
+      map.set(item.iso3.toUpperCase(), item);
+    }
+    return map;
+  }, [data]);
+
+  const activeMarkers = useMemo(() => {
+    return data
+      .filter(item => countryMarkers[item.iso3.toUpperCase()])
+      .map(item => ({
+        ...item,
+        ...countryMarkers[item.iso3.toUpperCase()]
+      }));
+  }, [data]);
+
+  if (error) {
+    return (
+      <div className="flex h-[500px] w-full flex-col items-center justify-center rounded-3xl border border-red-200 bg-red-50 p-6 dark:border-red-900/30 dark:bg-red-900/10">
+        <span className="text-sm font-medium text-red-800 dark:text-red-400">Error loading map data</span>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-full bg-red-100 px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
+
+  if (!mounted) {
+    return (
+      <div className="flex h-[500px] w-full items-center justify-center rounded-3xl border border-black/5 bg-zinc-50 dark:border-white/5 dark:bg-zinc-900/50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900 dark:border-zinc-700 dark:border-t-zinc-100"></div>
+          <span className="text-sm font-medium text-zinc-500">Initializing global data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const handleMoveEnd = (newPosition: { coordinates: [number, number]; zoom: number }) => {
+    setPosition(newPosition);
+  };
+
+  return (
+    <div className="group/map flex flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm dark:border-white/5 dark:bg-zinc-950">
+      <div className="flex items-center justify-between border-b border-black/5 px-6 py-4 dark:border-white/5">
+        <div className="flex flex-col">
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-tight">Epidemiological Status</h3>
+          <p className="text-[10px] text-zinc-500 font-medium tracking-wide uppercase">Real-time Global Surveillance</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {hoverIso3 && (
+            <div className="flex items-center gap-2 rounded-lg bg-zinc-100 px-3 py-1.5 dark:bg-zinc-900">
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-50">
+                {byIso3.get(hoverIso3)?.country || hoverIso3}
+              </span>
+              <span className="text-[10px] font-black text-zinc-400">|</span>
+              <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tighter">{hoverIso3}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="relative aspect-[16/9] w-full bg-zinc-50/50 dark:bg-zinc-900/10">
+        <ComposableMap
+          projection="geoEqualEarth"
+          projectionConfig={{ scale: 150 }}
+          className="h-full w-full"
+        >
+          <ZoomableGroup 
+            zoom={position.zoom} 
+            center={position.coordinates}
+            onMoveEnd={handleMoveEnd}
+            maxZoom={8}
+          >
+            <Geographies 
+              geography={GEO_URL}
+              onError={(err: any) => {
+                console.error("Map load error:", err);
+                setError(err.toString());
+              }}
+            >
+              {({ geographies }: { geographies: any[] }) =>
+                geographies.map((geo: any) => {
+                  const props = geo.properties || {};
+                  const iso3 = (
+                    props.iso_a3 || 
+                    props.ISO_A3 || 
+                    props.iso_3166_1_a3 || 
+                    props.adm0_a3 || 
+                    props.gu_a3 || 
+                    props.iso_a3_eh ||
+                    props.name || 
+                    props.NAME || 
+                    props.formal_en || 
+                    ""
+                  ).toUpperCase();
+                  
+                  const item = byIso3.get(iso3);
+                  const hasData = !!item;
+                  const fill = item ? statusColor(item.status) : "#e2e8f0";
+
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={fill}
+                      stroke="#FFFFFF"
+                      strokeWidth={0.5 / position.zoom}
+                      style={{
+                        default: { 
+                          outline: "none", 
+                          transition: "all 300ms",
+                          fillOpacity: hasData ? 0.8 : 0.3
+                        },
+                        hover: { 
+                          outline: "none", 
+                          fillOpacity: 1,
+                          cursor: "pointer",
+                          stroke: "#000000",
+                          strokeWidth: 1 / position.zoom,
+                        },
+                        pressed: { outline: "none" },
+                      }}
+                      onMouseEnter={() => setHoverIso3(iso3 || null)}
+                      onMouseLeave={() => setHoverIso3(null)}
+                      onClick={() => {
+                        if (item) {
+                          onSelect(item);
+                        } else {
+                          onSelect({
+                            iso3,
+                            country: props.name || props.NAME || props.formal_en || iso3,
+                            status: "unknown",
+                            updatedAt: new Date().toISOString().split('T')[0],
+                            note: "Monitoring active. No current outbreaks reported."
+                          });
+                        }
+                      }}
+                    />
+                  );
+                })
+              }
+            </Geographies>
+
+            {activeMarkers.map((marker) => {
+              const baseSize = 4;
+              const scaleFactor = Math.max(0.4, 1 / position.zoom);
+              const radius = baseSize * scaleFactor;
+              
+              return (
+                <Marker key={marker.iso3} coordinates={marker.coords as [number, number]}>
+                  <g
+                    className="cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelect(marker);
+                    }}
+                    onMouseEnter={() => setHoverIso3(marker.iso3)}
+                    onMouseLeave={() => setHoverIso3(null)}
+                  >
+                    <circle 
+                      r={radius * 2} 
+                      fill={statusColor(marker.status)} 
+                      fillOpacity={0.2}
+                      className="animate-pulse"
+                    />
+                    <circle 
+                      r={radius} 
+                      fill={statusColor(marker.status)} 
+                      stroke="#FFFFFF" 
+                      strokeWidth={1 * scaleFactor}
+                    />
+                    {position.zoom > 3 && (
+                      <text
+                        textAnchor="middle"
+                        y={-(radius + 2)}
+                        style={{ 
+                          fontSize: `${10 * scaleFactor}px`, 
+                          fontWeight: "bold",
+                          fill: "#1e293b",
+                          pointerEvents: "none",
+                          textShadow: "0 1px 2px rgba(255,255,255,0.8)"
+                        }}
+                      >
+                        {marker.cases?.toLocaleString()}
+                      </text>
+                    )}
+                  </g>
+                </Marker>
+              );
+            })}
+          </ZoomableGroup>
+        </ComposableMap>
+        
+        {/* Controls Overlay */}
+        <div className="absolute bottom-6 right-6 flex flex-col gap-2">
+          <div className="flex items-center gap-4 rounded-2xl bg-white/90 p-3 shadow-xl backdrop-blur-md dark:bg-zinc-900/90">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-tighter">Alert</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-amber-500"></div>
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-tighter">Watch</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-emerald-500"></div>
+              <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-tighter">Stable</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-black/5 px-6 py-4 dark:border-white/5 bg-zinc-50/50 dark:bg-zinc-900/50">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Surveillance Active</span>
+          </div>
+          <span className="text-[10px] text-zinc-300 font-black">|</span>
+          <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-tighter">
+            System Updated: {new Date().toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+          </span>
+        </div>
+        <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tight animate-bounce">
+          Select nodes for details
+        </div>
+      </div>
+    </div>
+  );
+}

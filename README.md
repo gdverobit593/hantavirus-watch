@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hantavirus Watch
 
-## Getting Started
+A RU+EN "reference + news" site scaffold for hantavirus updates: daily digest posts, a simple map page, and evergreen explainers.
 
-First, run the development server:
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `http://localhost:3000/en`
+- `http://localhost:3000/ru`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Content
 
-## Learn More
+Content lives in MDX files:
 
-To learn more about Next.js, take a look at the following resources:
+- `src/content/news/{en,ru}/*.mdx`
+- `src/content/reference/{en,ru}/*.mdx`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Each news item supports frontmatter fields:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `title`
+- `date` (YYYY-MM-DD)
+- `summary`
+- `sources[]` (optional)
 
-## Deploy on Vercel
+## SEO
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Sitemap is generated on build via `next-sitemap`:
+  - `npm run build` -> `postbuild` -> sitemap files in `public/`
+- RSS feed is available at `/rss.xml`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment variables
+
+- `SITE_URL` (recommended for correct absolute URLs in sitemap + RSS)
+  - Example: `https://your-domain.com`
+
