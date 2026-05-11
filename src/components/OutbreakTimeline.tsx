@@ -21,12 +21,30 @@ const outbreaks: OutbreakEvent[] = [
     }
   },
   {
+    year: "1976",
+    title: { en: "Identification of Hantaan Virus", ru: "Идентификация вируса Хантаан" },
+    location: { en: "South Korea", ru: "Южная Корея" },
+    description: { 
+      en: "Dr. Ho Wang Lee isolates the Hantaan virus, the cause of Korean hemorrhagic fever, from a striped field mouse.",
+      ru: "Доктор Хо Ван Ли выделяет вирус Хантаан, причину корейской геморрагической лихорадки, из полевой мыши."
+    }
+  },
+  {
     year: "1993",
     title: { en: "Four Corners Outbreak", ru: "Вспышка 'Четыре угла'" },
     location: { en: "Southwestern USA", ru: "Юго-запад США" },
     description: { 
       en: "Discovery of Sin Nombre virus after a series of respiratory distress cases in the Four Corners region.",
       ru: "Открытие вируса Sin Nombre после серии случаев респираторного дистресса в регионе Четырех Углов."
+    }
+  },
+  {
+    year: "1995",
+    title: { en: "Andes Virus Identification", ru: "Идентификация вируса Андес" },
+    location: { en: "Argentina", ru: "Аргентина" },
+    description: { 
+      en: "Identification of the Andes virus in El Bolsón, Argentina, during an outbreak of HPS.",
+      ru: "Идентификация вируса Андес в Эль-Больсоне, Аргентина, во время вспышки ХПС."
     }
   },
   {
@@ -45,6 +63,15 @@ const outbreaks: OutbreakEvent[] = [
     description: { 
       en: "Evidence of person-to-person transmission of Andes virus during an outbreak in Patagonia.",
       ru: "Доказательства передачи вируса Андес от человека к человеку во время вспышки в Патагонии."
+    }
+  },
+  {
+    year: "2024",
+    title: { en: "Recent Signals in Europe", ru: "Сигналы в Европе (2024)" },
+    location: { en: "Germany and Finland", ru: "Германия и Финляндия" },
+    description: { 
+      en: "Increased Puumala virus activity reported in Central and Northern Europe linked to rodent population cycles.",
+      ru: "Сообщения о повышенной активности вируса Пуумала в Центральной и Северной Европе, связанные с циклами популяции грызунов."
     }
   }
 ];
@@ -71,8 +98,8 @@ export default function OutbreakTimeline({ lang }: { lang: "en" | "ru" }) {
       <div className="relative overflow-hidden rounded-[2.5rem] border border-black/5 bg-white p-8 shadow-xl dark:border-white/5 dark:bg-zinc-900/50 lg:p-12">
         <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-blue-500/5 blur-3xl" />
         
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-center">
-          <div className="flex-1 space-y-6">
+        <div className="relative flex flex-col gap-8">
+          <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50 uppercase tracking-widest">
               {active.year}
             </div>
@@ -86,7 +113,7 @@ export default function OutbreakTimeline({ lang }: { lang: "en" | "ru" }) {
               </p>
             </div>
 
-            <p className="max-w-xl text-lg font-medium leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <p className="max-w-2xl text-lg font-medium leading-relaxed text-zinc-600 dark:text-zinc-400">
               {active.description[lang]}
             </p>
 
@@ -106,16 +133,6 @@ export default function OutbreakTimeline({ lang }: { lang: "en" | "ru" }) {
               <div className="ml-auto text-xs font-bold text-zinc-400 uppercase tracking-widest">
                 {activeIndex + 1} / {outbreaks.length}
               </div>
-            </div>
-          </div>
-
-          <div className="hidden lg:block lg:flex-1">
-            <div className="relative flex aspect-square items-center justify-center rounded-[2rem] bg-zinc-50 dark:bg-zinc-950/50 border border-black/5 dark:border-white/5 overflow-hidden">
-               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500 via-transparent to-transparent" />
-               <div className="text-[12rem] font-black text-zinc-900/5 select-none">{active.year}</div>
-               <div className="absolute inset-0 flex items-center justify-center">
-                  <Info className="h-32 w-32 text-zinc-900/10 dark:text-white/10" />
-               </div>
             </div>
           </div>
         </div>
