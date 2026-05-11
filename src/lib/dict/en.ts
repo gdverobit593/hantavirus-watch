@@ -1,5 +1,5 @@
 export const en = {
-  siteName: "Hantavirus Watch",
+  siteName: "Hantavirus.Homes",
   nav: {
     home: "Home",
     news: "News",
@@ -11,7 +11,7 @@ export const en = {
     support: "Support",
   },
   home: {
-    title: "Hantavirus Watch",
+    title: "Hantavirus.Homes",
     subtitle:
       "Global updates, a simple map, and practical explainers. Content is informational and not medical advice.",
     latestUpdates: "Latest updates",
@@ -28,7 +28,7 @@ export const en = {
     source: "Source",
   },
   about: {
-    p1: "Hantavirus Watch is a project focused on verified, source-linked hantavirus updates and practical explainers.",
+    p1: "Hantavirus.Homes is a project focused on verified, source-linked hantavirus updates and practical explainers.",
     p2: "Content is informational and may contain errors. It does not replace professional medical advice.",
   },
   map: {
